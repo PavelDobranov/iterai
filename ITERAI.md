@@ -18,7 +18,7 @@ Planning → Implementation → PR → Review and Merge
 
 | Phase | Purpose | Output |
 | --- | --- | --- |
-| [Planning](#5-phase-1--planning) | Idea → approved planning artifacts | PRD, plan, issue breakdown |
+| [Planning](#5-phase-1--planning) | Idea → approved planning artifacts | PRD, plan, transcribed issues |
 | [Implementation](#6-phase-2--implementation) | Execute one approved issue | Branch + verification |
 | [PR](#7-phase-3--pr) | Package the slice | Reviewable PR |
 | [Review and Merge](#8-phase-4--review-and-merge) | Resolve feedback, merge, capture follow-ups | Merged PR + closed issue |
@@ -40,7 +40,7 @@ AI drafts artifact
 → Human approves or comments again
 ```
 
-This always applies to PRDs, plans, and issue breakdowns. It may apply to PR bodies and review responses when the human wants extra control.
+This always applies to PRDs and plans. Issue creation is transcription from the approved plan, not a review cycle (see §5.4). It may apply to PR bodies and review responses when the human wants extra control.
 
 ### 2.2 Approval Gates
 
@@ -56,8 +56,7 @@ Only after confirmation does the workflow continue.
 **Major gates.** Approval is required before:
 
 - moving from PRD to implementation plan
-- moving from plan to issue breakdown
-- moving from issue breakdown to implementation
+- moving from approved plan to issue transcription and implementation
 - starting work on a branch
 - opening or publishing a PR (if the human wants that control)
 - merging (unless project rules say otherwise)
@@ -212,23 +211,10 @@ At least one alternative decomposition we rejected, and why.
 
 One option is not a design. Sketch two; keep the loser as a one-line note.
 
-### Red Flags Checked
+Close the Design section with two one-liners:
 
-Note any of these the plan introduces, and the justification:
-
-- shallow module (interface roughly the size of its implementation)
-- pass-through method or class (forwards without adding value)
-- information leakage between modules
-- temporal decomposition (modules shaped like a sequence of steps, not by what they hide)
-- special-case logic that should be generalized
-- repeated logic across slices
-- new abstraction that breaks layer separation
-
-### Complexity Direction
-
-Net effect of this iteration on structural complexity: **adds** | **neutral** | **reduces**.
-
-If it adds, why is that the right trade now? Link any design-debt follow-ups.
+- Red flags: none | <flag — justification>
+- Complexity: adds | neutral | reduces — <why, if adds>
 
 ## Affected Files / Areas
 
@@ -242,7 +228,7 @@ How will this be tested or checked?
 
 Source of truth: GitHub Issues.
 
-Before issue creation, briefly describe the intended vertical slices without duplicating full issue bodies. After issue creation, list issue links or numbers.
+Describe the intended vertical slices without duplicating full issue bodies. These slices are reviewed as part of plan approval. After transcription to GitHub, list issue links or numbers here.
 
 Each slice should respect the modules and interfaces defined in [Design](#design). Slices that require widening an interface beyond what Design specifies must call that out explicitly.
 
@@ -250,6 +236,10 @@ Each slice should respect the modules and interfaces defined in [Design](#design
 
 What might block or change the plan?
 ```
+
+Red flags to check: shallow module, pass-through method or class, information leakage between modules, temporal decomposition, special-case logic that should be generalized, repeated logic across slices, new abstraction that breaks layer separation. Justify or fix anything flagged. If complexity is added, link any design-debt follow-ups.
+
+The `Status` line is the only workflow state. On approval, flip it to `Approved <YYYY-MM-DD>`. No other status tracking, front matter, or index files.
 
 Optional sections:
 
@@ -279,13 +269,13 @@ What changes are included?
 
 ## Contract
 
-The design contract this issue must respect. Carries the Design section of `plan.md` into the implementation context so the agent doing the work cannot drift.
+The design contract this issue must respect, by reference. Do not restate the plan's Design section — link it.
 
-- Module(s) touched: which entries from `plan.md` § Design are changed.
-- Interface: what callers see after this issue. Signature shape, surface area, or "no change".
-- Information hidden inside: what this module owns that nothing else should know.
-- Out of contract: what callers must NOT rely on, even if the implementation happens to expose it.
-- Widening allowed? no by default. If yes, link the plan revision that approved it.
+- Plan: <path to plan.md> § Design
+- Touches: <module(s) from Design>
+- Out of contract: <one line — what callers must NOT rely on, if anything>
+
+The implementing agent reads the linked Design section before coding. Widening an interface beyond Design requires revising the plan first — it is a design decision, not a coding choice.
 
 For trivial issues (doc-only, dependency bump, typo): `Contract: N/A — <reason>`.
 
@@ -357,23 +347,26 @@ Turn an idea into reviewable planning artifacts before any implementation begins
 ### 5.2 Outputs
 
 - Local `prd.md` and `plan.md` at the path in [§3.1 Layout](#31-layout).
-- GitHub issue breakdown, namespaced by iteration via title prefix, label, or milestone such as `iterai: YYYY-MM-DD-<slug>`.
+- GitHub issues transcribed from approved slices, namespaced by iteration via title prefix, label, or milestone such as `iterai: YYYY-MM-DD-<slug>`.
 
 ### 5.3 Flow
 
 ```text
 Idea
-→ Grilling session
+→ Grilling session (optional)
 → PRD draft
 → Human comments (Plannotator preferred) → AI revises → AI summarizes → Human approves
-→ Implementation plan draft
+→ Implementation plan draft (slices included)
 → Human comments → AI revises → AI summarizes → Human approves
-→ Issue breakdown draft (GitHub Issues)
-→ Human comments → AI revises → Human approves
+→ Issues transcribed to GitHub from approved slices → links recorded in plan.md
 → Planning phase complete
 ```
 
-Each artifact uses the review cycle from [§2.1](#21-review-cycle).
+Every step is human-triggered. No skill auto-advances to the next artifact.
+
+Grilling is optional; invoke it when the idea has unresolved decisions. Its output feeds the PRD and is not persisted as an artifact — the PRD captures whatever mattered.
+
+PRD and plan use the review cycle from [§2.1](#21-review-cycle). Slices are reviewed as part of plan approval; issue creation afterwards is pure transcription, with no separate review cycle.
 
 ### 5.4 When Each Artifact Is Ready
 
@@ -398,20 +391,21 @@ Ready when:
 - verification is concrete
 - slices are small enough for one branch and one PR each, and respect the design
 - risks and unknowns are visible
-- issue breakdown can proceed without inventing context
+- issue transcription can proceed without inventing context
 
 Add detail when the implementation affects architecture, dependencies, migrations, security, performance, or multiple modules.
 
-**Issue breakdown** (template: [§4.3](#43-github-issue)). Converts the plan into small, independently reviewable vertical slices in GitHub Issues.
+**Issue transcription** (template: [§4.3](#43-github-issue)). Creates GitHub Issues from the approved plan's slices. This is transcription, not a new review cycle — the slices were already reviewed at plan approval.
 
-GitHub Issues are the source of truth for issue content. Do not create a local `issues.md`. The local `plan.md` may link to issue numbers but should not duplicate full issue bodies.
+GitHub Issues are the source of truth for issue content. Do not create a local `issues.md`. The local `plan.md` links to issue numbers but does not duplicate issue bodies.
 
 Ready when:
 
-- each issue is small enough to fit one branch and one PR
+- each issue matches one approved slice, small enough for one branch and one PR
 - each issue has goal, scope, contract, acceptance criteria, and verification
-- each issue's contract names the module(s) touched and the interface after the change, traceable back to `plan.md` § Design
+- each issue's contract references `plan.md` § Design rather than restating it
 - issues are ordered by dependency and risk
+- issue links are recorded back in `plan.md`
 
 ### 5.5 Phase-Specific Stop Conditions
 
@@ -623,7 +617,6 @@ Unresolved design questions for the workflow itself. Resolve through real use, t
 - What is the smallest useful PRD format?
 - How lightweight can the required artifacts be before they stop being useful?
 - How detailed should the implementation plan be?
-- Should issues be created in GitHub during this phase or drafted in markdown first?
 
 ### Implementation
 

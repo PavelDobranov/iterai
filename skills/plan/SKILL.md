@@ -7,7 +7,7 @@ argument-hint: "<approved PRD path, brief, user request, feature slug, or planni
 
 # Plan
 
-You are a technical lead turning an approved PRD, brief, or user request into a lightweight implementation plan. The plan must be reviewable by a human, useful later without conversation context, and detailed enough to support a later issue breakdown. Keep it practical and proportional to the size and risk of the work.
+You are a technical lead turning an approved PRD, brief, or user request into a lightweight implementation plan. The plan must be reviewable by a human, useful later without conversation context, and detailed enough to support a later issue transcription. Keep it practical and proportional to the size and risk of the work.
 
 This skill writes only `plan.md`. Do not create GitHub issues, implement code, create branches, open PRs, or mutate issue trackers unless the user explicitly asks for the next workflow step after approving the plan.
 
@@ -34,8 +34,7 @@ The Design section in the template is required. Do it before splitting the work 
 
 - Name every module touched (new, modified, removed). For each, write the interface callers see and what it hides.
 - Sketch at least two decompositions and keep the loser as a one-line rejected alternative. One option is not a design.
-- Walk the red-flag list and flag anything the plan introduces: shallow modules, pass-throughs, information leakage, temporal decomposition, repeated logic, special-cases that should be generalized, abstractions that break layer separation. Justify or fix.
-- State the net complexity direction: adds, neutral, or reduces. If it adds, note why this is the right trade and capture any deferred refactor as a follow-up.
+- Close the Design section with two one-liners. Red flags: walk the list (shallow modules, pass-throughs, information leakage, temporal decomposition, repeated logic, special-cases that should be generalized, abstractions that break layer separation) and write `none` or each flag with justification. Complexity: adds, neutral, or reduces — if it adds, note why this is the right trade and capture any deferred refactor as a follow-up.
 - If a project-level design artifact exists (e.g. `.agents/iterai/design.md`), read it first and write the Design section against it.
 - If the design pass cannot be completed without inventing requirements, stop and surface the question. Do not slice on top of a vague design.
 
@@ -87,23 +86,10 @@ For each module touched (new, modified, removed):
 
 At least one alternative decomposition we rejected, and why.
 
-### Red Flags Checked
+Close the Design section with two one-liners:
 
-Note any introduced by this plan, with justification:
-
-- shallow module (interface roughly the size of its implementation)
-- pass-through method or class
-- information leakage between modules
-- temporal decomposition (modules shaped like a sequence of steps, not by what they hide)
-- special-case logic that should be generalized
-- repeated logic across slices
-- new abstraction that breaks layer separation
-
-### Complexity Direction
-
-Net effect on structural complexity: **adds** | **neutral** | **reduces**.
-
-If it adds, why is that the right trade now? Link any design-debt follow-ups.
+- Red flags: none | <flag — justification>
+- Complexity: adds | neutral | reduces — <why, if adds>
 
 ## Affected Files / Areas
 
@@ -117,7 +103,7 @@ How will this be tested or checked?
 
 Source of truth: GitHub Issues.
 
-Before issue creation, briefly describe the intended vertical slices without duplicating full issue bodies. Each slice must respect the modules and interfaces from Design.
+Describe the intended vertical slices without duplicating full issue bodies. These slices are reviewed as part of plan approval; issue creation afterwards is pure transcription. After transcription, list issue links or numbers here. Each slice must respect the modules and interfaces from Design.
 
 ### Slice 1: <Title>
 
@@ -163,10 +149,10 @@ After writing or revising, print:
 
 ```text
 Plan written to .agents/iterai/iterations/YYYY-MM-DD-<feature-slug>/plan.md
-Review and reply "approve" to proceed to issue breakdown, "edit" to revise, or leave feedback.
+Review and reply "approve" to proceed to issue transcription, "edit" to revise, or leave feedback.
 ```
 
-Also include a brief 3-5 bullet summary of approach, **design (modules + complexity direction)**, affected areas, verification, intended slices, and risks/open questions. Then stop. Do not create issues, implement, branch, or run further tools until the human explicitly approves the next gate.
+Also include a brief 3-5 bullet summary of approach, **design (modules + complexity direction)**, affected areas, verification, intended slices, and risks/open questions. Approving the plan approves its slices; issue creation afterwards is transcription, not a new review cycle. Then stop. Do not create issues, implement, branch, or run further tools until the human explicitly approves the next gate.
 
 ### 6. Revise
 
@@ -177,14 +163,16 @@ When the user provides feedback:
 - List remaining open questions.
 - Pause again for review.
 
+When the user approves, flip the plan's `Status` line to `Approved <YYYY-MM-DD>`. That line is the only workflow state — no other status tracking.
+
 ## Rules
 
 - Use this skill for explicit planning intent: direct plan request, plan invocation with inline context, plan invocation with source file(s), or a request to convert an approved PRD, brief, or user request into an implementation plan.
 - Do not use this skill merely because the user mentions an idea, feature, bug, or implementation.
-- Do not silently cross the planning gate. Human approval is required before issue breakdown or implementation.
+- Do not silently cross the planning gate. Human approval is required before issue transcription or implementation.
 - Do not create a local `issues.md`; GitHub Issues are the issue source of truth for the MVP.
 - Do not create issue tracker entries unless the user explicitly asks after approving the plan.
-- The plan is ready when the approach is clear, the Design section is complete (modules named, alternatives considered, red flags checked, complexity direction stated), affected areas are identified, verification is concrete, slices are small enough for one branch/PR each and respect the design, risks/unknowns are visible, and issue breakdown can proceed without inventing context.
+- The plan is ready when the approach is clear, the Design section is complete (modules named, alternatives considered, red-flag and complexity one-liners written), affected areas are identified, verification is concrete, slices are small enough for one branch/PR each and respect the design, risks/unknowns are visible, and issue transcription can proceed without inventing context.
 - Do not skip the Design section even for small work. For trivial slices it may be short, but it must exist: at minimum the module touched, what it hides, and the complexity direction.
 - For doc-only, dependency bump, or typo-class iterations, a one-line `Design: N/A — <reason>` is acceptable in place of the full section. Use this sparingly; if you reach for it twice in a row, the work is probably not as trivial as it looks.
 - If a slice requires changing an interface beyond what Design specifies, stop and revise Design first — do not let implementation discover the design.
