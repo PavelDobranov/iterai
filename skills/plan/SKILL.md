@@ -7,53 +7,43 @@ argument-hint: "<approved PRD path, brief, user request, feature slug, or planni
 
 # Plan
 
-You are a technical lead turning an approved PRD, brief, or user request into a lightweight implementation plan. The plan must be reviewable by a human, useful later without conversation context, and detailed enough to support a later issue transcription. Keep it practical and proportional to the size and risk of the work.
+You turn an approved PRD, brief, or user request into a short implementation plan. The plan must be reviewable by a human, useful later without the conversation, and detailed enough to copy into GitHub issues. Keep it proportional to the size and risk of the work.
 
-This skill writes only `plan.md`. Do not create GitHub issues, implement code, create branches, open PRs, or mutate issue trackers unless the user explicitly asks for the next workflow step after approving the plan.
+This skill writes only `plan.md`. Do not create issues, write code, create branches, or open PRs unless the user explicitly asks for the next step after approving the plan.
 
 ## Workflow
 
-### 1. Ground in the input
+### 1. Prepare
 
-- Treat the full argument as the planning request unless the user names a feature, iteration, or PRD.
-- Prefer an approved PRD as source input when available.
-- If the user gives a feature slug or iteration name, look for `.agents/iterai/iterations/YYYY-MM-DD-<feature-slug>/prd.md` and write the sibling `plan.md`.
-- If the user gives a PRD path, write `plan.md` beside it unless a different target is specified.
-- If no iteration directory exists and the input is sufficient, derive a short kebab-case feature slug and write to `.agents/iterai/iterations/YYYY-MM-DD-<feature-slug>/plan.md` using the current date.
-- Create parent directories if needed.
-- Update an existing `plan.md` when revising the same iteration.
-- Ask which target to use only when multiple matching iteration folders exist or the target is ambiguous.
-- Read the source input and relevant repository context before choosing task boundaries.
-- If code or files can answer a question, inspect them instead of asking.
-- Ask for clarification when missing information would materially change approach, task boundaries, sequencing, acceptance criteria, verification, architecture, dependencies, or risk.
-- If the input is too vague for a useful implementation plan, stop instead of fabricating tasks.
+- Prefer an approved PRD as input. If given a slug, look for `.agents/iterai/iterations/YYYY-MM-DD-<slug>/prd.md` and write the sibling `plan.md`. If given a PRD path, write `plan.md` next to it.
+- If no iteration folder exists and the input is enough, derive a slug and write to `.agents/iterai/iterations/YYYY-MM-DD-<feature-slug>/plan.md` using the current date.
+- When revising the same iteration, update the existing `plan.md`. Ask only if the target is ambiguous.
+- Read the input and relevant repo context before splitting the work. If code can answer a question, read the code instead of asking.
+- Ask when missing information would change the approach, slicing, verification, architecture, or dependencies. If the input is too vague for a useful plan, stop instead of inventing tasks.
 
-### 2. Design before slicing
+### 2. Design first
 
-The Design section in the template is required. Do it before splitting the work into slices, not after.
+Do the Design section before splitting the work into slices.
 
-- Name every module touched (new, modified, removed). For each, write the interface callers see and what it hides.
-- Sketch at least two decompositions and keep the loser as a one-line rejected alternative. One option is not a design.
-- Close the Design section with two one-liners. Red flags: walk the list (shallow modules, pass-throughs, information leakage, temporal decomposition, repeated logic, special-cases that should be generalized, abstractions that break layer separation) and write `none` or each flag with justification. Complexity: adds, neutral, or reduces — if it adds, note why this is the right trade and capture any deferred refactor as a follow-up.
-- If a project-level design artifact exists (e.g. `.agents/iterai/design.md`), read it first and write the Design section against it.
-- If the design pass cannot be completed without inventing requirements, stop and surface the question. Do not slice on top of a vague design.
+- Name every module that is new, changed, or removed. For each, write the interface callers see and what it hides.
+- Sketch at least two ways to split the work; keep the loser as a one-line rejected alternative. One option is not a design.
+- Watch out for: modules that only pass data through, logic repeated across slices, special cases that should be one general rule. Fix or justify these.
+- If a project design file exists (e.g. `.agents/iterai/design.md`), read it first and write Design against it.
+- If Design cannot be completed without inventing requirements, stop and ask.
 
 ### 3. Split the work
 
-- Break the work into small, independently reviewable vertical slices suitable for one focused agent execution, review, and rollback.
-- Prefer vertical slices over layer-by-layer plans.
+- Split into small vertical slices. Each slice fits one branch, one PR, and one focused agent run.
 - Order slices by dependency and risk.
-- Surface shared decisions, architecture constraints, dependency changes, migrations, deletion/replacement strategy, and major risk once before the affected slices.
-- Each slice must respect the modules and interfaces defined in the Design section. If a slice requires widening an interface beyond Design, call that out explicitly and treat it as a design decision, not a coding choice.
-- Keep the local plan at planning level. Do not duplicate full GitHub issue bodies in `plan.md`; briefly describe intended slices until issues are created.
-- Include error behavior in the slice or plan section that owns it.
-- If a slice needs many acceptance criteria or mixes unrelated decision clusters, split it.
+- Each slice must respect the interfaces in Design. If a slice needs a wider interface, that is a design change — revise Design first.
+- Keep `plan.md` at planning level. Describe slices briefly; do not write full issue bodies.
+- If a slice needs many acceptance criteria or mixes unrelated decisions, split it.
 
 ### 4. Write
 
-Write `plan.md` using the minimum template below. Add optional sections only when useful for the size, risk, or ambiguity of the work.
+Use the template below. Add optional sections only when the work is big, risky, or unclear.
 
-#### Minimum Template
+#### Template
 
 <!-- mirror of ITERAI.md §4.2 — keep in sync -->
 
@@ -62,8 +52,8 @@ Write `plan.md` using the minimum template below. Add optional sections only whe
 
 ## Source
 
-- PRD/brief/request: <path, link, or summary>
-- Status: Draft pending human approval
+- PRD: <path or link>
+- Status: Draft
 
 ## Approach
 
@@ -71,29 +61,17 @@ How will we implement this?
 
 ## Design
 
-The design pass that must happen before slicing.
+For each module that is new, changed, or removed:
 
-### Modules
+- **<name>** — new | changed | removed
+  - Interface: what callers see
+  - Hides: what only this module needs to know
 
-For each module touched (new, modified, removed):
+One alternative we considered and rejected, and why (one line is enough).
 
-- **<name>** — new | modified | removed
-  - Interface: what callers see (signature shape, surface area)
-  - Hides: what this module owns that nothing else needs to know
-  - Depth: deep | balanced | shallow — and why that is acceptable
+## Affected Areas
 
-### Considered Alternatives
-
-At least one alternative decomposition we rejected, and why.
-
-Close the Design section with two one-liners:
-
-- Red flags: none | <flag — justification>
-- Complexity: adds | neutral | reduces — <why, if adds>
-
-## Affected Files / Areas
-
-What parts of the system are likely to change?
+What parts of the system will change?
 
 ## Verification
 
@@ -101,85 +79,48 @@ How will this be tested or checked?
 
 ## Slices / Issues
 
-Source of truth: GitHub Issues.
-
-Describe the intended vertical slices without duplicating full issue bodies. These slices are reviewed as part of plan approval; issue creation afterwards is pure transcription. After transcription, list issue links or numbers here. Each slice must respect the modules and interfaces from Design.
-
 ### Slice 1: <Title>
 
 - Goal: What concrete outcome should this slice produce?
 - Context: What does an agent need to know without the prior conversation?
 - Relevant files or references: Paths, docs, APIs, issues, or commands to inspect.
-- Proposed approach: High-level implementation direction without overscripting routine choices.
 - Touches: Which module(s) from Design does this slice change?
 - Acceptance criteria:
   - [ ] Outcome that must be true when this slice is done.
 - Verify: Concrete command, test, review, or manual check.
-- Source reference: PRD section, brief section, or user request excerpt.
-- Out of scope: Optional exclusions for this slice.
 
 ## Risks / Unknowns
 
 What might block or change the plan?
 ```
 
-#### Optional Sections
+Optional sections, when useful: `Constraints`, `Dependencies`, `Migration Notes`, `Security Notes`, `Performance Notes`, `Follow-Ups`.
 
-```markdown
-## Constraints
-
-## Decisions Needed
-
-## Dependencies
-
-## Data / Migration Notes
-
-## Security / Privacy Notes
-
-## Performance Notes
-
-## Rollback / Recovery
-
-## Follow-Ups
-```
-
-### 5. Pause at the approval gate
+### 5. Pause
 
 After writing or revising, print:
 
 ```text
 Plan written to .agents/iterai/iterations/YYYY-MM-DD-<feature-slug>/plan.md
-Review and reply "approve" to proceed to issue transcription, "edit" to revise, or leave feedback.
+Review and reply "approve" to proceed to issue creation, "edit" to revise, or leave feedback.
 ```
 
-Also include a brief 3-5 bullet summary of approach, **design (modules + complexity direction)**, affected areas, verification, intended slices, and risks/open questions. Approving the plan approves its slices; issue creation afterwards is transcription, not a new review cycle. Then stop. Do not create issues, implement, branch, or run further tools until the human explicitly approves the next gate.
+Add a 3–5 bullet summary of approach, design, verification, slices, and risks. Approving the plan approves its slices; issue creation afterwards is copying, not a new review. Then stop. Do not create issues, implement, or branch until the human approves.
 
 ### 6. Revise
 
-When the user provides feedback:
+On feedback: update the same `plan.md`, summarize what changed, list remaining open questions, and pause again.
 
-- Update the same `plan.md` unless a different target is specified.
-- Summarize what changed.
-- List remaining open questions.
-- Pause again for review.
-
-When the user approves, flip the plan's `Status` line to `Approved <YYYY-MM-DD>`. That line is the only workflow state — no other status tracking.
+When the user approves, change the `Status` line to `Approved <YYYY-MM-DD>`. That line is the only workflow state.
 
 ## Rules
 
-- Use this skill for explicit planning intent: direct plan request, plan invocation with inline context, plan invocation with source file(s), or a request to convert an approved PRD, brief, or user request into an implementation plan.
-- Do not use this skill merely because the user mentions an idea, feature, bug, or implementation.
-- Do not silently cross the planning gate. Human approval is required before issue transcription or implementation.
-- Do not create a local `issues.md`; GitHub Issues are the issue source of truth for the MVP.
-- Do not create issue tracker entries unless the user explicitly asks after approving the plan.
-- The plan is ready when the approach is clear, the Design section is complete (modules named, alternatives considered, red-flag and complexity one-liners written), affected areas are identified, verification is concrete, slices are small enough for one branch/PR each and respect the design, risks/unknowns are visible, and issue transcription can proceed without inventing context.
-- Do not skip the Design section even for small work. For trivial slices it may be short, but it must exist: at minimum the module touched, what it hides, and the complexity direction.
-- For doc-only, dependency bump, or typo-class iterations, a one-line `Design: N/A — <reason>` is acceptable in place of the full section. Use this sparingly; if you reach for it twice in a row, the work is probably not as trivial as it looks.
-- If a slice requires changing an interface beyond what Design specifies, stop and revise Design first — do not let implementation discover the design.
+- Use this skill only when the user explicitly asks for a plan. Mentioning an idea, feature, or bug is not enough.
+- Human approval is required before issue creation or implementation. Never cross that gate silently.
+- GitHub Issues are the issue source of truth. Do not create a local `issues.md`.
+- The plan is ready when: the approach and design are clear, verification is concrete, each slice fits one branch and one PR, and issues can be created from it without inventing context.
+- Do not skip Design. For trivial work (docs, typos, dependency bumps), `Design: N/A — <reason>` is fine — but use it sparingly.
 - Acceptance criteria describe outcomes, not implementation steps.
-- Verify steps must be concrete and runnable without inventing missing inputs.
-- Write for a human who will read this in six months and has forgotten the thread.
-- Each slice must carry enough context for an AI agent with no prior session.
-- If two implementation approaches would materially change scope, risk, dependencies, or verification, call out the decision or ask before writing.
-- If implementation reveals extra work later, the agent should stop and propose updating scope, creating a follow-up issue, returning to planning, or splitting/rejecting the current work.
-- Keep plans lightweight for small work; expand only for large, risky, cross-cutting, architecture-sensitive, security-sensitive, performance-sensitive, migration, deletion, replacement, or dependency-heavy work.
+- Verify steps must be concrete and runnable.
+- Write for a human who reads this in six months. Each slice must carry enough context for an agent with no prior session.
+- If two approaches would meaningfully change scope, risk, or dependencies, call out the decision or ask before writing.

@@ -7,32 +7,26 @@ argument-hint: "<idea, problem, feature request, bug/improvement, notes, or sour
 
 # PRD
 
-You are a product-minded principal engineer writing a lightweight PRD for a human to review before planning or implementation. Capture what should be built, why it matters, for whom, and how success will be judged. Keep it product-focused and implementation-neutral.
+You write a short PRD for a human to review before planning or implementation. Capture what should be built, why, for whom, and how success will be judged. Stay product-focused: no implementation details.
 
-This skill writes only `prd.md`. Do not write an implementation plan, create issues, or start coding unless the user asks for the next workflow step.
+This skill writes only `prd.md`. Do not write a plan, create issues, or start coding unless the user asks for the next step.
 
 ## Workflow
 
-### 1. Align
+### 1. Prepare
 
-- Treat the full argument as the request unless the user names a feature or iteration.
-- Derive a short kebab-case feature slug if no slug is given.
-- By default, write to `.agents/iterai/iterations/YYYY-MM-DD-<feature-slug>/prd.md` using the current date.
-- Create parent directories if needed.
-- Use a user- or project-specified PRD location when provided.
-- Update an existing `prd.md` when revising the same iteration.
-- Ask which target to use only when multiple matching iteration folders exist or the target is ambiguous.
-- Read referenced files and relevant repo context so the PRD fits the project as it exists.
-- If code or files can answer a question, inspect them instead of asking.
-- Ask only when missing information would make intent, scope, out-of-scope, or acceptance criteria vague.
-- Ask one question at a time, with your recommended answer.
-- Continue only when the PRD can be written without inventing requirements.
+- Treat the full argument as the request. Derive a short kebab-case slug if none is given.
+- Write to `.agents/iterai/iterations/YYYY-MM-DD-<feature-slug>/prd.md` using the current date. Create folders if needed.
+- When revising the same iteration, update the existing `prd.md`. Ask only if the target is ambiguous.
+- Read referenced files and relevant repo context first. If code can answer a question, read the code instead of asking.
+- Ask the user only when missing information would make intent, scope, or acceptance criteria vague. One question at a time, with your recommended answer.
+- Do not invent requirements.
 
 ### 2. Write
 
-Write `prd.md` using the minimum template below. Add optional sections only when useful for the size, risk, or ambiguity of the work. Keep small PRDs short; expand only for large, risky, cross-cutting, product-sensitive, security-sensitive, performance-sensitive, migration, deletion, replacement, or dependency-heavy work.
+Use the template below. Add optional sections only when the work is big, risky, or unclear.
 
-#### Minimum Template
+#### Template
 
 <!-- mirror of ITERAI.md §4.1 — keep in sync -->
 
@@ -58,35 +52,11 @@ What is explicitly excluded?
 ## Acceptance Criteria
 
 - [ ] What must be true for this to be accepted?
-
-Acceptance criteria describe what an observer sees, not what happens inside. If an AC names a class, file, function, or other implementation detail, rewrite it in terms of observable behavior.
 ```
 
-#### Optional Sections
+Acceptance criteria describe what a user or observer can see — not internal details. If a criterion names a class, file, or function, rewrite it as visible behavior.
 
-```markdown
-## Background / Context
-
-## Goals
-
-## Non-Goals
-
-## External Surface
-
-## Errors Designed Out
-
-## Constraints
-
-## Dependencies
-
-## Risks / Unknowns
-
-## Open Questions
-```
-
-`External Surface` describes the contract the user, caller, or operator sees — not the mechanism. Use it when the iteration introduces or changes anything externally visible (API, CLI, file format, UI affordance).
-
-`Errors Designed Out` lists failure modes the design makes impossible, vs. failure modes it merely handles. Use it when error handling would otherwise complicate the design.
+Optional sections, when useful: `Background`, `Goals`, `Non-Goals`, `Constraints`, `Dependencies`, `Risks`, `Open Questions`.
 
 ### 3. Pause
 
@@ -97,26 +67,16 @@ PRD written to .agents/iterai/iterations/YYYY-MM-DD-<feature-slug>/prd.md
 Review and reply "approve" to proceed, "edit" to revise, or leave feedback.
 ```
 
-Also include a brief 3-5 bullet summary of intent, scope, exclusions, acceptance criteria, and any open questions or assumptions. Then stop. Do not plan, create issues, implement, or run further tools until the human responds.
+Add a 3–5 bullet summary of intent, scope, exclusions, acceptance criteria, and any open questions. Then stop. Do not plan, create issues, or implement until the human responds.
 
 ### 4. Revise
 
-When the user provides feedback:
-
-- Update the same `prd.md` unless a different target is specified.
-- Summarize what changed.
-- List remaining open questions.
-- Pause again for review.
+On feedback: update the same `prd.md`, summarize what changed, list remaining open questions, and pause again.
 
 ## Rules
 
-- Use this skill only for explicit PRD intent: direct PRD request, prd invocation with inline context, prd invocation with source file(s), or a request to convert a grill-me result into a PRD.
-- Do not use this skill merely because the user mentions planning, requirements, an idea, a feature, or a bug.
-- The PRD is ready when intent and user/problem are clear, scope and out-of-scope are explicit, acceptance criteria are concrete/checkable and framed as observable behavior, and assumptions/open questions are visible.
-- Acceptance criteria must describe what an observer sees, not what happens inside. If an AC names a class, file, function, or other implementation detail, rewrite it.
-- Use `External Surface` when the iteration changes anything externally visible; it forces the PRD to be framed from the outside.
-- Use `Errors Designed Out` when a failure mode can be eliminated by design rather than handled by code; capture the design choice in the PRD so the plan inherits it.
-- Do not invent requirements not supported by the user, files, or repo context.
+- Use this skill only when the user explicitly asks for a PRD. Mentioning an idea, feature, or bug is not enough.
+- The PRD is ready when: intent and the user's problem are clear, scope and out-of-scope are explicit, and acceptance criteria are concrete and checkable.
+- Write for a human who reads this later without the conversation context.
 - If two product behaviors would differ, call out the decision or ask before writing.
-- Write for a human who will read this later without the conversation context.
-- If the PRD is getting long, narrow or split the work instead of expanding the document.
+- If the PRD is getting long, narrow or split the work instead of growing the document.

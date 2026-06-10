@@ -1,138 +1,114 @@
 # ITERAI
 
-A manual, human-in-the-loop AI-assisted development workflow.
+A simple way to build software with AI, where the human stays in control.
 
-> AI accelerates execution. The human controls direction.
+> AI does the work. The human decides the direction.
 
-The AI may draft, propose, revise, implement, and summarize. The human approves gates, resolves ambiguity, and decides when to move forward.
+The AI writes drafts, code, and summaries. The human reviews, answers questions, and says when to move forward.
 
-This is the manual MVP. Skills and automation are derived from this document, not the other way around.
+This document is the source of truth. Skills and automation are built from it, not the other way around.
 
 ---
 
-## 1. Flow
+## 1. The Flow
 
 ```text
-Planning → Implementation → PR → Review and Merge
+Plan → Implement → Ship
 ```
 
-| Phase | Purpose | Output |
+| Phase | What happens | Result |
 | --- | --- | --- |
-| [Planning](#5-phase-1--planning) | Idea → approved planning artifacts | PRD, plan, transcribed issues |
-| [Implementation](#6-phase-2--implementation) | Execute one approved issue | Branch + verification |
-| [PR](#7-phase-3--pr) | Package the slice | Reviewable PR |
-| [Review and Merge](#8-phase-4--review-and-merge) | Resolve feedback, merge, capture follow-ups | Merged PR + closed issue |
+| [Plan](#5-phase-1--plan) | Turn an idea into a PRD, a plan, and GitHub issues | Approved plan + issues |
+| [Implement](#6-phase-2--implement) | Build one issue on one branch | Working, tested change |
+| [Ship](#7-phase-3--ship) | Open a PR, handle review, merge | Merged PR, closed issue |
+
+The core rule of the whole workflow:
+
+```text
+One issue = one branch = one PR
+```
 
 ---
 
-## 2. Universal Patterns
+## 2. The Rules
 
-These patterns apply across every phase. Phase sections refer back here rather than restating them.
+These rules apply everywhere. The phases below refer back to them.
 
-### 2.1 Review Cycle
+### 2.1 Review Loop
 
-Important artifacts follow this loop:
+Every important document (PRD, plan) goes through this loop:
 
 ```text
-AI drafts artifact
-→ Human comments (Plannotator preferred for markdown/docs)
-→ AI updates artifact and summarizes changes
-→ Human approves or comments again
+AI writes a draft
+→ Human comments
+→ AI updates the draft and summarizes what changed
+→ Human approves, or comments again
 ```
 
-This always applies to PRDs and plans. Issue creation is transcription from the approved plan, not a review cycle (see §5.4). It may apply to PR bodies and review responses when the human wants extra control.
+### 2.2 Ask Before Moving On
 
-### 2.2 Approval Gates
+The AI never assumes approval. Before crossing a gate, it says what it wants to do next and waits for a clear "yes".
 
-Before moving between major steps, the AI must not assume approval. It performs a read-back:
+Approval is required before:
 
-1. State the gate being crossed.
-2. State what permissions are unlocked.
-3. Summarize the next actions in 3–5 bullets.
-4. Ask for explicit confirmation.
+- writing the plan (after the PRD is approved)
+- creating issues and starting work (after the plan is approved)
+- starting a branch
+- opening a PR
+- merging
+- any change to scope, architecture, or dependencies
 
-Only after confirmation does the workflow continue.
+### 2.3 Stop and Ask
 
-**Major gates.** Approval is required before:
-
-- moving from PRD to implementation plan
-- moving from approved plan to issue transcription and implementation
-- starting work on a branch
-- opening or publishing a PR (if the human wants that control)
-- merging (unless project rules say otherwise)
-- changing scope, architecture, dependencies, deletion/replacement strategy, or large refactor direction
-
-### 2.3 Universal Stop Conditions
-
-The AI stops and asks before continuing when:
+The AI stops and asks the human when:
 
 - requirements are unclear
-- acceptance criteria are missing or untestable
-- an issue or slice is too large
+- acceptance criteria are missing or cannot be checked
+- the work is bigger than one PR
 - the work no longer matches the approved plan
-- scope, architecture, or dependency changes are needed
-- deletion/replacement strategy is needed
-- a large refactor is needed
+- a new dependency, big refactor, or deletion is needed
 - verification fails and the fix is not obvious
-- the human has not approved the next gate
 
-Phase sections may add phase-specific stop conditions.
+### 2.4 Keep Scope Small
 
-### 2.4 Scope Discipline
+If new work appears during implementation, the AI does not quietly include it. It stops and proposes one of:
 
-```text
-One approved issue = one branch = one PR
-```
-
-If implementation reveals extra work, the AI does not silently include it. It stops and proposes one of:
-
-- update the issue scope with approval
+- update the issue scope (with approval)
 - create a follow-up issue
-- return to planning
-- reject or split the current work
+- go back to planning
 
 ---
 
-## 3. Artifacts
+## 3. Files
 
-Every iteration produces the same artifact types, with weight scaled to the work. Required artifacts, variable weight.
-
-### 3.1 Layout
+Each unit of work is an **iteration**. Its files live in the target repo:
 
 ```text
-.agents/
-  iterai/
-    iterations/
-      YYYY-MM-DD-<slug>/
-        prd.md
-        plan.md
+.agents/iterai/iterations/YYYY-MM-DD-<slug>/
+  prd.md
+  plan.md
 ```
 
 Rules:
 
-- `.agents/` is the shared agent namespace.
-- `iterai/` is the Iterai framework namespace.
-- `iterations/` contains all work units.
-- Iteration folders use `YYYY-MM-DD-<lowercase-kebab-case-slug>`.
-- Local artifact filenames are lowercase.
-- These files are committed to the target repository.
-- Do not create a local `issues.md`; GitHub Issues are the issue source of truth.
-- Do not create a local `readme.md`, global config, or index file inside `.agents/iterai/` for the MVP.
+- Folder names use the date plus a short lowercase-kebab-case slug.
+- These files are committed to the repo.
+- GitHub Issues hold the issue content. Do not keep a local `issues.md`.
+- No index files, config files, or extra status tracking.
 
-### 3.2 Source of Truth
+Source of truth, in order:
 
-In order:
-
-1. committed Iterai local artifacts in the repository
+1. committed `prd.md` and `plan.md`
 2. GitHub Issues and PRs
 3. this document
-4. personal notes
 
 ---
 
 ## 4. Templates
 
-### 4.1 `prd.md`
+Each template has a small required core. Add optional sections only when the work is big, risky, or unclear.
+
+### 4.1 `prd.md` — what and why
 
 ```markdown
 # PRD: <Title>
@@ -156,37 +132,21 @@ What is explicitly excluded?
 ## Acceptance Criteria
 
 - [ ] What must be true for this to be accepted?
-
-Acceptance criteria describe what an observer sees, not what happens inside. If an AC names a class, file, function, or other implementation detail, rewrite it in terms of observable behavior.
 ```
 
-Optional sections (add only when useful for the size, risk, or ambiguity of the work):
+Acceptance criteria describe what a user or observer can see — not internal details. If a criterion names a class, file, or function, rewrite it as visible behavior.
 
-```markdown
-## Background / Context
-## Goals
-## Non-Goals
-## External Surface
-## Errors Designed Out
-## Constraints
-## Dependencies
-## Risks / Unknowns
-## Open Questions
-```
+Optional sections, when useful: `Background`, `Goals`, `Non-Goals`, `Constraints`, `Dependencies`, `Risks`, `Open Questions`.
 
-`External Surface` describes the contract the user, caller, or operator sees — not the mechanism. Use it when the iteration introduces or changes anything externally visible (API, CLI, file format, UI affordance). Writing this section forces the PRD to be framed from the outside.
-
-`Errors Designed Out` lists failure modes the design makes impossible (vs. failure modes the design merely handles). Example: instead of "handle missing config file", state "config is always present because the installer writes a default". Use it when error handling would otherwise complicate the design.
-
-### 4.2 `plan.md`
+### 4.2 `plan.md` — how
 
 ```markdown
 # Plan: <Title>
 
 ## Source
 
-- PRD/brief/request: <path, link, or summary>
-- Status: Draft pending human approval
+- PRD: <path or link>
+- Status: Draft
 
 ## Approach
 
@@ -194,31 +154,17 @@ How will we implement this?
 
 ## Design
 
-The design pass that must happen before slicing. Skipping this section is not allowed.
+For each module that is new, changed, or removed:
 
-### Modules
+- **<name>** — new | changed | removed
+  - Interface: what callers see
+  - Hides: what only this module needs to know
 
-For each module touched (new, modified, removed), one bullet:
+One alternative we considered and rejected, and why (one line is enough).
 
-- **<name>** — new | modified | removed
-  - Interface: what callers see (signature shape, surface area)
-  - Hides: what this module owns that nothing else needs to know
-  - Depth: deep | balanced | shallow — and why that is acceptable
+## Affected Areas
 
-### Considered Alternatives
-
-At least one alternative decomposition we rejected, and why.
-
-One option is not a design. Sketch two; keep the loser as a one-line note.
-
-Close the Design section with two one-liners:
-
-- Red flags: none | <flag — justification>
-- Complexity: adds | neutral | reduces — <why, if adds>
-
-## Affected Files / Areas
-
-What parts of the system are likely to change?
+What parts of the system will change?
 
 ## Verification
 
@@ -226,35 +172,24 @@ How will this be tested or checked?
 
 ## Slices / Issues
 
-Source of truth: GitHub Issues.
-
-Describe the intended vertical slices without duplicating full issue bodies. These slices are reviewed as part of plan approval. After transcription to GitHub, list issue links or numbers here.
-
-Each slice should respect the modules and interfaces defined in [Design](#design). Slices that require widening an interface beyond what Design specifies must call that out explicitly.
+The small steps the work is split into. Each slice fits in one branch and one PR. After issues are created on GitHub, list the links here.
 
 ## Risks / Unknowns
 
 What might block or change the plan?
 ```
 
-Red flags to check: shallow module, pass-through method or class, information leakage between modules, temporal decomposition, special-case logic that should be generalized, repeated logic across slices, new abstraction that breaks layer separation. Justify or fix anything flagged. If complexity is added, link any design-debt follow-ups.
+Notes:
 
-The `Status` line is the only workflow state. On approval, flip it to `Approved <YYYY-MM-DD>`. No other status tracking, front matter, or index files.
+- The `Status` line is the only workflow state. On approval, change it to `Approved <YYYY-MM-DD>`.
+- Design comes before slicing. Sketch at least two ways to split the work; keep the loser as a one-line note. One option is not a design.
+- Watch out for: modules that only pass data through, logic repeated across slices, special cases that should be one general rule. Fix or justify these.
+- Slices must respect the interfaces in Design. If a slice needs a wider interface, that is a plan change — revise the plan first.
+- For trivial work (docs, typos, dependency bumps), `Design: N/A — <reason>` is fine.
 
-Optional sections:
+Optional sections, when useful: `Constraints`, `Dependencies`, `Migration Notes`, `Security Notes`, `Performance Notes`, `Follow-Ups`.
 
-```markdown
-## Constraints
-## Decisions Needed
-## Dependencies
-## Data / Migration Notes
-## Security / Privacy Notes
-## Performance Notes
-## Rollback / Recovery
-## Follow-Ups
-```
-
-### 4.3 GitHub Issue
+### 4.3 GitHub Issue — one slice
 
 ```markdown
 # Issue: <Title>
@@ -267,30 +202,21 @@ What concrete outcome should this issue produce?
 
 What changes are included?
 
-## Contract
+## Design
 
-The design contract this issue must respect, by reference. Do not restate the plan's Design section — link it.
-
-- Plan: <path to plan.md> § Design
-- Touches: <module(s) from Design>
-- Out of contract: <one line — what callers must NOT rely on, if anything>
-
-The implementing agent reads the linked Design section before coding. Widening an interface beyond Design requires revising the plan first — it is a design decision, not a coding choice.
-
-For trivial issues (doc-only, dependency bump, typo): `Contract: N/A — <reason>`.
+- See: <path to plan.md> § Design
+- Touches: <module(s)>
 
 ## Acceptance Criteria
 
 - [ ] What must be true when this issue is done?
 
-Acceptance criteria describe observable outcomes, not implementation steps. If a criterion names a class, file, or internal function, rewrite it.
-
 ## Verification
 
-What command, test, review, or manual check proves it works?
+What command, test, or manual check proves it works?
 ```
 
-Optional sections: Out of Scope, Dependencies, Blockers, Definition of Done.
+Link the plan's Design section — do not copy it into the issue. For trivial issues: `Design: N/A — <reason>`.
 
 ### 4.4 PR Description
 
@@ -305,14 +231,10 @@ Optional sections: Out of Scope, Dependencies, Blockers, Definition of Done.
 
 What changed?
 
-## Scope Confirmation
-
-Which approved scope does this PR cover?
-
 ## Verification
 
-- Commands run and results
-- Red/green evidence for feature or bugfix work
+- Commands run and their results
+- For features and bugfixes: show the test failing before and passing after
 
 ## Known Limitations
 
@@ -320,329 +242,93 @@ What is intentionally not solved here?
 
 ## Follow-Ups
 
-Links to follow-up issues or notes.
+Links to follow-up issues, if any.
 ```
 
-### 4.5 Template Evolution
+### 4.5 Changing the Templates
 
-Update these templates when real usage shows that a section is:
-
-- always useful and should be required
-- rarely useful and should be optional
-- unclear or duplicated
-- missing for team handoff
-- missing for historical traceability
+Update a template when real use shows that a section is always needed, never needed, or confusing. Keep the required core small.
 
 ---
 
-## 5. Phase 1 — Planning
+## 5. Phase 1 — Plan
 
-Turn an idea into reviewable planning artifacts before any implementation begins.
-
-### 5.1 Inputs
-
-- Initial idea, problem, feature request, bug, or improvement.
-- Existing repo context, docs, issues, and constraints if available.
-
-### 5.2 Outputs
-
-- Local `prd.md` and `plan.md` at the path in [§3.1 Layout](#31-layout).
-- GitHub issues transcribed from approved slices, namespaced by iteration via title prefix, label, or milestone such as `iterai: YYYY-MM-DD-<slug>`.
-
-### 5.3 Flow
+Turn an idea into an approved plan and GitHub issues before any code is written.
 
 ```text
 Idea
-→ Grilling session (optional)
-→ PRD draft
-→ Human comments (Plannotator preferred) → AI revises → AI summarizes → Human approves
-→ Implementation plan draft (slices included)
-→ Human comments → AI revises → AI summarizes → Human approves
-→ Issues transcribed to GitHub from approved slices → links recorded in plan.md
-→ Planning phase complete
+→ Grilling session (optional — useful when the idea has open decisions)
+→ PRD draft → review loop (§2.1) → approved
+→ Plan draft (with slices) → review loop (§2.1) → approved
+→ Copy approved slices into GitHub issues → record links in plan.md
+→ Done
 ```
 
-Every step is human-triggered. No skill auto-advances to the next artifact.
+Every step is started by the human. Nothing auto-advances.
 
-Grilling is optional; invoke it when the idea has unresolved decisions. Its output feeds the PRD and is not persisted as an artifact — the PRD captures whatever mattered.
+**The PRD is ready when:** intent and the user's problem are clear, scope and out-of-scope are explicit, and acceptance criteria are concrete and checkable.
 
-PRD and plan use the review cycle from [§2.1](#21-review-cycle). Slices are reviewed as part of plan approval; issue creation afterwards is pure transcription, with no separate review cycle.
+**The plan is ready when:** the approach and design are clear, verification is concrete, and each slice is small enough for one branch and one PR.
 
-### 5.4 When Each Artifact Is Ready
-
-**PRD** (template: [§4.1](#41-prdmd)). Defines what should be built, why, for whom, and how success will be judged.
-
-Ready when:
-
-- intent and user/problem are clear
-- scope and out-of-scope are explicit
-- acceptance criteria are concrete and checkable
-- assumptions and open questions are visible
-
-Add detail when the iteration is large, risky, cross-cutting, or product-sensitive.
-
-**Implementation plan** (template: [§4.2](#42-planmd)). Defines how the PRD will be implemented.
-
-Ready when:
-
-- approach is clear
-- design pass is done: modules named, interfaces sketched, at least one alternative considered and rejected, red flags checked, complexity direction stated
-- affected areas are identified
-- verification is concrete
-- slices are small enough for one branch and one PR each, and respect the design
-- risks and unknowns are visible
-- issue transcription can proceed without inventing context
-
-Add detail when the implementation affects architecture, dependencies, migrations, security, performance, or multiple modules.
-
-**Issue transcription** (template: [§4.3](#43-github-issue)). Creates GitHub Issues from the approved plan's slices. This is transcription, not a new review cycle — the slices were already reviewed at plan approval.
-
-GitHub Issues are the source of truth for issue content. Do not create a local `issues.md`. The local `plan.md` links to issue numbers but does not duplicate issue bodies.
-
-Ready when:
-
-- each issue matches one approved slice, small enough for one branch and one PR
-- each issue has goal, scope, contract, acceptance criteria, and verification
-- each issue's contract references `plan.md` § Design rather than restating it
-- issues are ordered by dependency and risk
-- issue links are recorded back in `plan.md`
-
-### 5.5 Phase-Specific Stop Conditions
-
-In addition to [§2.3](#23-universal-stop-conditions), stop and ask if:
-
-- the plan is too broad
-- an issue is too large for one PR
-- architecture, dependency, or major scope decisions are unresolved
+**Issue creation is copying, not writing.** The slices were already reviewed when the plan was approved. Each issue matches one slice, ordered by dependency and risk. If a slice is missing something the issue needs, fix the plan — do not invent content in the issue.
 
 ---
 
-## 6. Phase 2 — Implementation
+## 6. Phase 2 — Implement
 
-Implement one approved issue at a time while keeping scope small, testable, and reviewable. This phase executes one approved vertical slice. It does not expand the plan.
-
-### 6.1 Inputs
-
-- Approved issue.
-- Approved implementation plan.
-- Existing repo state.
-- Verification commands or test strategy.
-
-### 6.2 Outputs
-
-- One branch for the selected issue.
-- Tests or verification evidence.
-- Implemented change within approved scope.
-- Notes about discoveries, blockers, or follow-up work.
-
-### 6.3 Flow
+Build one approved issue. Do not expand the plan.
 
 ```text
-Select one approved issue
-→ Confirm issue scope
-→ Create/switch branch
-→ Write failing test or define verification first
-→ Run test/verification and capture baseline
-→ Implement minimal change
-→ Run verification again
-→ Refactor only if needed and safe
-→ Capture final verification evidence
-→ Move to PR phase
+Pick one approved issue
+→ Confirm its scope
+→ Create a branch
+→ Write the failing test first (or define how to verify)
+→ Show the failure
+→ Implement the minimal change
+→ Show the test passing
+→ Run the relevant test suite
+→ Move to Ship
 ```
 
-### 6.4 Core Rules
+Rules:
 
-- One issue = one branch = one PR.
-- Stay inside the approved issue scope.
-- Do not silently add scope.
-- Do not install dependencies without approval.
-- Do not perform large refactors without approval.
-- Convert discoveries into follow-up issues or planning notes.
-
-### 6.5 TDD / Verification
-
-**Feature work**
-
-1. Write the failing test first.
-2. Show the failure.
-3. Implement minimal code.
-4. Show the passing test.
-5. Run the relevant suite.
-
-**Bugfix work**
-
-1. Reproduce the bug with a failing regression test.
-2. Implement the fix.
-3. Show the regression test passing.
-4. Run the relevant suite.
-
-**Refactor / chore / docs work**
-
-- Use appropriate verification.
-- If tests are not applicable, explain why.
-
-### 6.6 Phase-Specific Stop Conditions
-
-In addition to [§2.3](#23-universal-stop-conditions), stop and ask if:
-
-- the approved plan appears wrong
-- tests cannot be meaningfully written
-- implementation requires broader changes than the issue describes
+- Stay inside the issue scope. New discoveries become follow-up issues (§2.4).
+- No new dependencies or big refactors without approval (§2.2).
+- For bugfixes: first reproduce the bug with a failing test, then fix it.
+- For docs or chores where tests do not apply: say how it was verified instead.
 
 ---
 
-## 7. Phase 3 — PR
+## 7. Phase 3 — Ship
 
-Package one completed implementation slice into a clear, reviewable pull request. The PR makes scope, verification, and remaining risks obvious to the human reviewer.
-
-### 7.1 Inputs
-
-- Completed branch for one approved issue.
-- Verification evidence.
-- Any implementation notes or discovered follow-ups.
-
-### 7.2 Outputs
-
-- Pull request draft or opened PR.
-- PR description following the template in [§4.4](#44-pr-description).
-- Linked issue.
-
-### 7.3 Flow
+Open a PR, handle review feedback, and merge.
 
 ```text
-Review branch status
-→ Confirm changes match one approved issue
-→ Draft PR description (see §4.4)
-→ Human reviews PR draft if desired
-→ Open or update PR
-→ Move to Review and Merge phase
+Confirm the branch matches one approved issue
+→ Write the PR description (§4.4) → human may review it first
+→ Open the PR
+→ Human reviews:
+   - approve → merge → close issue → record follow-ups
+   - request changes → AI updates the same branch, re-verifies, asks for re-review
+   - reject → stop, summarize why, go back to the issue or the plan
+→ Done
 ```
 
-Optional pre-open review loop:
+Before merging, check:
 
-```text
-AI drafts PR body → Human comments → AI revises → Human approves opening PR
-```
-
-### 7.4 PR Description Checklist
-
-Every PR includes:
-
-- linked issue (`Closes #N`)
-- summary of changes
-- scope confirmation
-- tests added or updated
-- verification commands and results
-- red/green evidence for feature or bugfix work
-- screenshots or manual notes if useful
-- known limitations
-- follow-up issues or recommendations
-
-### 7.5 Phase-Specific Stop Conditions
-
-In addition to [§2.3](#23-universal-stop-conditions), stop and ask if:
-
-- the branch includes unrelated changes
-- the PR covers more than one issue
-- verification is missing or failed
-- the implementation differs from the approved plan
-
----
-
-## 8. Phase 4 — Review and Merge
-
-Resolve review feedback, verify the final branch state, merge safely, and capture follow-up work. This phase closes the loop for one issue/branch/PR slice.
-
-### 8.1 Inputs
-
-- Open PR.
-- Reviewer comments or approval.
-- Verification requirements.
-
-### 8.2 Outputs
-
-- Updated PR if changes were requested.
-- Final verification evidence.
-- Merged PR or explicit rejection/rollback decision.
-- Closed or updated issue.
-- Follow-up issues or notes if needed.
-
-### 8.3 Flow
-
-```text
-Human reviews PR
-→ Outcome: accept, comment/request changes, or reject
-→ If comments: AI updates same branch → re-runs verification → human reviews again
-→ If accepted: merge → close/update issue → record follow-ups
-→ If rejected: stop, summarize why, return to issue/plan/PRD as appropriate
-→ Iteration slice complete
-```
-
-### 8.4 Review Outcomes
-
-**Accept.** PR satisfies scope, acceptance criteria, and verification. Next: merge and close/update the issue.
-
-**Comment / request changes.** PR is directionally correct but needs updates. Next: AI updates the same branch, re-verifies, summarizes changes, pauses for re-review.
-
-**Reject.** PR should not proceed as-is. Next: stop, summarize why, and return to issue, plan, or PRD refinement.
-
-### 8.5 Merge Checklist
-
-Before merge:
-
-- issue is linked
-- acceptance criteria are satisfied
+- the issue is linked and its acceptance criteria are met
 - verification evidence is current
-- review comments are resolved
-- follow-up work is captured
-- no unexpected scope remains
-
-### 8.6 Phase-Specific Stop Conditions
-
-In addition to [§2.3](#23-universal-stop-conditions), stop and ask if:
-
-- review feedback changes scope
-- feedback contradicts the approved plan
-- verification fails after review changes
-- the PR should be rejected or split
+- all review comments are resolved
+- follow-up work is captured as issues
 
 ---
 
-## 9. Open Questions
+## 8. Open Questions
 
-Unresolved design questions for the workflow itself. Resolve through real use, then fold answers back into the relevant section and remove the question here.
+Things to resolve through real use. When answered, fold the answer into the document and delete the question.
 
-### Planning
-
-- What is the smallest useful PRD format?
-- How lightweight can the required artifacts be before they stop being useful?
-- How detailed should the implementation plan be?
-
-### Implementation
-
-- How strict should TDD be in practice?
-- Should every implementation begin with explicit branch approval?
-- How should verification evidence be captured: markdown, PR body, issue comment, or all three?
-- When should small refactors be allowed without a new approval gate?
-- What is the maximum acceptable size of one implementation slice?
-
-### PR
-
-- Should the human approve the PR body before every PR is opened?
-- Should first push require explicit approval?
-- Where should verification evidence live: PR body only, issue comment, or separate note?
-- What PR size is too large?
-- Should screenshots / manual test notes be required for UI work?
-
-### Review and Merge
-
-- Who performs the final merge: human only, AI with approval, or project-dependent?
-- Should every merge require a final read-back confirmation?
-- How should rejected PRs be documented?
-- Should follow-up issues be created immediately or collected for later planning?
-- What marks an iteration as complete?
-
-### Cross-Cutting
-
-- When does the manual MVP graduate to automation, and what is the first piece to automate?
-- How are iterations indexed across multiple projects without a global index file?
+- How small can the PRD and plan get before they stop being useful?
+- How strict should test-first be in practice?
+- Where should verification evidence live: PR body, issue comment, or both?
+- Who merges: human only, or AI with approval?
+- When does this manual workflow graduate to automation, and which part first?
