@@ -34,6 +34,8 @@ Write `prd.md` using the minimum template below. Add optional sections only when
 
 #### Minimum Template
 
+<!-- mirror of ITERAI.md §4.1 — keep in sync -->
+
 ```markdown
 # PRD: <Title>
 
@@ -56,6 +58,8 @@ What is explicitly excluded?
 ## Acceptance Criteria
 
 - [ ] What must be true for this to be accepted?
+
+Acceptance criteria describe what an observer sees, not what happens inside. If an AC names a class, file, function, or other implementation detail, rewrite it in terms of observable behavior.
 ```
 
 #### Optional Sections
@@ -67,6 +71,10 @@ What is explicitly excluded?
 
 ## Non-Goals
 
+## External Surface
+
+## Errors Designed Out
+
 ## Constraints
 
 ## Dependencies
@@ -75,6 +83,10 @@ What is explicitly excluded?
 
 ## Open Questions
 ```
+
+`External Surface` describes the contract the user, caller, or operator sees — not the mechanism. Use it when the iteration introduces or changes anything externally visible (API, CLI, file format, UI affordance).
+
+`Errors Designed Out` lists failure modes the design makes impossible, vs. failure modes it merely handles. Use it when error handling would otherwise complicate the design.
 
 ### 3. Pause
 
@@ -100,7 +112,10 @@ When the user provides feedback:
 
 - Use this skill only for explicit PRD intent: direct PRD request, prd invocation with inline context, prd invocation with source file(s), or a request to convert a grill-me result into a PRD.
 - Do not use this skill merely because the user mentions planning, requirements, an idea, a feature, or a bug.
-- The PRD is ready when intent and user/problem are clear, scope and out-of-scope are explicit, acceptance criteria are concrete/checkable, and assumptions/open questions are visible.
+- The PRD is ready when intent and user/problem are clear, scope and out-of-scope are explicit, acceptance criteria are concrete/checkable and framed as observable behavior, and assumptions/open questions are visible.
+- Acceptance criteria must describe what an observer sees, not what happens inside. If an AC names a class, file, function, or other implementation detail, rewrite it.
+- Use `External Surface` when the iteration changes anything externally visible; it forces the PRD to be framed from the outside.
+- Use `Errors Designed Out` when a failure mode can be eliminated by design rather than handled by code; capture the design choice in the PRD so the plan inherits it.
 - Do not invent requirements not supported by the user, files, or repo context.
 - If two product behaviors would differ, call out the decision or ask before writing.
 - Write for a human who will read this later without the conversation context.

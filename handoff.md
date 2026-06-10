@@ -2,96 +2,145 @@
 
 ## Context
 
-User owns a workflow repo describing **Iterai**, a manual AI-assisted development workflow. Repo is intended to be self-contained (docs + skills); user does **not** want to depend on global skills in `~/.pi/agent/skills/`.
+User owns a workflow repo describing **Iterai**, a manual AI-assisted development workflow. Repo is self-contained (docs + skills); user does **not** want to depend on global skills in `~/.pi/agent/skills/`.
 
-This session focused on **documents only**. Skills are next.
+This session injected ideas from **John Ousterhout's _A Philosophy of Software Design_** into the **planning phase** of Iterai. The goal is not to redesign Iterai itself, but to make Iterai produce projects (PRDs → plans → issues → code) that follow Ousterhout's design discipline.
 
-## Current state of the repo
+## Repo layout
 
 ```
 workflow/
-├── README.md       # 27 lines — landing page
-├── ITERAI.md       # 592 lines — full spec (single source of truth)
+├── README.md
+├── ITERAI.md               # spec, source of truth
+├── handoff.md              # this file
 └── skills/
     ├── grill-me/SKILL.md
     ├── prd/SKILL.md
     └── plan/SKILL.md
 ```
 
-Read `ITERAI.md` first. Its outline:
-
-1. Flow
-2. Universal Patterns (review cycle, approval gates, universal stop conditions, scope discipline)
-3. Artifacts (layout, source of truth)
-4. Templates (`prd.md`, `plan.md`, GitHub Issue, PR description)
-5. Phase 1 — Planning
-6. Phase 2 — Implementation
-7. Phase 3 — Implementation → PR
-8. Phase 4 — Review and Merge
-9. Open Questions
-
-All cross-references are anchor links within the same file.
+Read `ITERAI.md` first. Skills mirror its templates with `<!-- mirror of ITERAI.md §N — keep in sync -->` markers.
 
 ## What was done this session
 
-1. Reviewed original 6 markdown docs + 3 skills. Identified problems: duplication across files, dangling `[[AI Flow PRD]]` wikilinks, naming inconsistency ("AI Flow" vs "Iterai"), missing skills for half the workflow, overlap with global skills.
-2. **First pass** (later superseded): renamed `AI Flow *` → `Iterai - *`, slimmed Overview, added README + Open Questions doc, deduped templates. Resulted in 8 files / 767 lines.
-3. **Second pass (final)**: combined all 7 Iterai docs into a single `ITERAI.md` (592 lines) + tiny `README.md` (27 lines). Deleted the 7 intermediate files. No content loss; just deduplication of universal patterns, paths, templates.
+The framing: **agents are tactical by default** (make the test pass). The workflow's job is to **inject strategic design moments at the gates** where the human is already paying attention, and bake red-flag checks into the artifacts the agent has to produce anyway.
 
-Old filenames (now deleted, do not look for them):
-`AI Flow Overview.md`, `AI Flow Artifact Templates.md`, `AI Flow Phase - {Planning,Implementation,PR,Review and Merge}.md`, and their intermediate `Iterai - *.md` renames, plus `Iterai - Open Questions.md`.
+Five-step plan was agreed:
 
-## What's next: skills
+1. **PRD** — frame in interface terms, not implementation.
+2. **Plan** — force a design pass before slicing.
+3. **Issue** — carry the design contract into implementation.
+4. **Implement / PR / Review** — design-first comments, red-flag self-check, design review section, design-debt capture.
+5. **Project-level `.agents/iterai/design.md`** — living design ledger across iterations.
 
-User confirmed direction in this session but did NOT execute it yet. The plan:
+**Completed: steps 1–3 (the planning phase).** Steps 4–5 are deferred.
 
-- Treat `ITERAI.md` as source of truth; skills are derived artifacts that mirror it.
-- Repo is named Iterai, so skills do **not** need an `iterai-` prefix.
-- Proposed skill set (one per workflow artifact):
+### Concrete changes shipped
 
-  ```
-  skills/
-    grill-me/     # pre-PRD interview (canonical Iterai version, replace existing)
-    prd/          # Phase 1 — writes prd.md (refresh existing)
-    plan/         # Phase 1 — writes plan.md (refresh existing)
-    issues/       # Phase 1 — drafts GitHub issue breakdown (new)
-    implement/    # Phase 2 — executes one approved issue, embeds TDD (new)
-    pr/           # Phase 3 — drafts PR body (new)
-    review/       # Phase 4 — handles review feedback + merge readiness (new)
-  ```
+**`ITERAI.md §4.1` + `skills/prd/SKILL.md` (PRD)**
 
-- Skill design rules (agreed):
-  - Top of file: `Source: ITERAI.md §N` pointer
-  - Templates inlined (skills must work standalone), marked `<!-- mirror of ITERAI.md §4.x — keep in sync -->`
-  - Hard-coded approval gate pause (read-back + explicit confirmation), consistent with `ITERAI.md §2.2`
-  - No dependency on global skills (`~/.pi/agent/skills/`)
-  - TDD rules live inside `implement`, not a separate skill
+- Acceptance Criteria must describe what an observer sees, not implementation details. If an AC names a class, file, or function, rewrite it.
+- Two new optional sections in the PRD template:
+  - `## External Surface` — the contract a user/caller/operator sees, not the mechanism. Forces outside-in framing.
+  - `## Errors Designed Out` — failure modes the design makes impossible (vs. handles). Ousterhout's "define errors out of existence".
 
-### Open questions for the user before executing the skills pass
+**`ITERAI.md §4.2` + `skills/plan/SKILL.md` (plan)**
 
-1. Confirm the 7 skills above are the right scope (vs. folding `grill-me` into `prd`, or splitting `implement`).
-2. Confirm `user-invocable: true` with argument-hints on all 7 (default yes).
-3. For `implement` / `pr` / `review` — should they accept a GitHub issue # / PR URL as argument, or work from local context only?
+- New required `## Design` section between `Approach` and `Affected Files / Areas`:
+  - `### Modules` — each module touched (new/modified/removed): interface, what it hides, depth (deep/balanced/shallow + why).
+  - `### Considered Alternatives` — at least one rejected decomposition. "Design it twice."
+  - `### Red Flags Checked` — shallow modules, pass-throughs, info leakage, temporal decomposition, special-cases, repetition, layer-leaking abstractions. Each must be justified or fixed.
+  - `### Complexity Direction` — adds / neutral / reduces. If adds, justify and capture debt.
+- Slices must trace to a module from Design (`Touches:` field on each slice).
+- Interface widening beyond Design is an explicit design decision, not a coding choice — revise Design first.
+- Trivial-iteration escape hatch: `Design: N/A — <reason>`. Use sparingly; not twice in a row.
+- Skill's workflow step "Design before slicing" inserted before slicing.
+- Approval-gate summary must include modules + complexity direction.
 
-## Existing skills — current state
+**`ITERAI.md §4.3` (GitHub Issue template)**
 
-- `skills/prd/SKILL.md` — interviews user, writes `.agents/iterai/iterations/<>/prd.md`. Inlines the PRD template. Pauses at approval gate. Needs refresh to point at `ITERAI.md` and trim inlined template to a mirror with sync marker.
-- `skills/plan/SKILL.md` — same pattern for `plan.md`. Same refresh needed.
-- `skills/grill-me/SKILL.md` — ~5 lines, generic interview prompt. Decide whether to keep as-is or make it Iterai-aware (mention "before PRD").
+- New required `## Contract` section:
+  - Module(s) touched (traceable to `plan.md § Design`).
+  - Interface after the change.
+  - Information hidden inside.
+  - Out of contract: what callers must NOT rely on.
+  - Widening allowed? Default no.
+- Same observable-AC rule as PRD.
+- Same `Contract: N/A — <reason>` shorthand for trivial issues.
+- Issue breakdown readiness checklist now requires each Contract to trace back to plan's Design.
 
-## Suggested skills for the next session
+### Defaults chosen on open questions
 
-- **grill-me** — if the next agent wants to stress-test the skill design before executing, use the local `skills/grill-me/SKILL.md` (per user's "no global skills" stance, prefer the local one if it suits).
-- No other skills should be invoked. The next session is editing files in this repo, not running a higher-level workflow.
+- Trivial slices: allow `Design: N/A — <reason>` shorthand, with friction (warn if used twice in a row).
+- Rejected alternatives: required for every iteration, not only "adds-complexity" ones.
+- `design.md` (step 5): soft `if exists, read it first` reference in plan skill — harmless until step 5 ships.
+
+## What's next: deferred work
+
+In priority order:
+
+### Step 3 (next session): `implement` skill
+
+Per original handoff this skill is unwritten. Open questions to resolve before writing:
+
+1. **Argument shape.** Accept a GitHub issue number / URL, or local context only? Suggested default: **accept issue # or URL**, fall back to local context. Skill can `gh issue view N` to fetch the Contract.
+2. **TDD ladder.** Keep §6.5's feature/bugfix/refactor ladders but prepend a step: **"write the interface comment (what this hides, what callers see) before the failing test"**. For refactor/docs: "state the invariant being preserved".
+3. **Red-flag self-check** before declaring done. Checklist:
+   - No new shallow modules.
+   - No pass-through methods.
+   - No information leaks (caller sees internal types/state).
+   - No temporal decomposition disguised as modules.
+   - No special-case branches that forced callers to know module internals.
+   - No new repetition (or justified).
+   - Code "looks like it was always there".
+   - Public names create accurate expectations.
+4. **When a flag fires.** Suggested default: **(a) stop and ask the human.** Not (b) auto-fix or (c) surface in PR body.
+5. **Scope of self-check.** Suggested default: **diff only**, agent free to widen if it sees something suspicious nearby.
+6. **Wider-than-Contract change** is a stop condition: propose tighten, expand contract (new approval), or split issue.
+
+### Step 4: `pr` skill
+
+Add `## Design Review` section to PR template, distinct from verification:
+
+- Interface changes (added/changed/removed).
+- What is now hidden.
+- Depth check on new/modified modules.
+- Red flags considered (yes/no + why).
+- Strategic vs Tactical: name the kind of PR. If tactical, link design-debt follow-up.
+
+### Step 4: `review` / merge skill
+
+- Required reviewer prompt: "What did this PR make easier or harder to change next? Name one thing." (change-amplification heuristic)
+- Mandatory follow-up scan before merge — create `design-debt` labeled issues.
+
+### Step 5: `.agents/iterai/design.md` (project-level design ledger)
+
+Lives forever per repo, alongside `iterations/`. Contents:
+
+- Module Catalog (table).
+- Key Invariants (must remain true across codebase).
+- Standing Decisions ("we do X this way because…").
+- Design Debt (what / where / why deferred / trigger).
+- Glossary (names + meanings; promotes reuse over reinvention).
+
+Wiring:
+
+- `plan` reads it first; Design section is written against it; on merge, new modules append.
+- `implement` consults for naming and invariants.
+- `pr` updates it.
+- `review` checks it was updated when it should have been.
+
+Do step 5 last; let steps 3–4 run on real iterations first to see what naturally accumulates.
+
+## Constraints to respect
+
+- **Self-contained repo.** No dependencies on `~/.pi/agent/skills/`.
+- **Docs are source of truth.** Skills mirror `ITERAI.md` with sync markers, never the other way around. If a skill needs new behavior, propose updating `ITERAI.md` first.
+- **Minimal scope per turn.** Apply the workflow's own scope discipline.
+- **No silent gate crossing.** Skills pause for explicit human approval per `ITERAI.md §2.2`.
 
 ## Pointers
 
 - Spec: `ITERAI.md`
-- Landing: `README.md`
 - Skills dir: `skills/`
-
-## Constraints to respect
-
-- **Self-contained repo.** Do not introduce dependencies on `~/.pi/agent/skills/` or any global skill.
-- **Docs are the source of truth.** Skills mirror them, not vice versa. If a skill needs new behavior, propose updating `ITERAI.md` first.
-- **Minimal scope per turn.** Apply the workflow's own scope discipline to changes here: one cohesive change per turn, propose before executing big restructurings.
+- Landing: `README.md`

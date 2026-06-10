@@ -157,6 +157,8 @@ What is explicitly excluded?
 ## Acceptance Criteria
 
 - [ ] What must be true for this to be accepted?
+
+Acceptance criteria describe what an observer sees, not what happens inside. If an AC names a class, file, function, or other implementation detail, rewrite it in terms of observable behavior.
 ```
 
 Optional sections (add only when useful for the size, risk, or ambiguity of the work):
@@ -165,11 +167,17 @@ Optional sections (add only when useful for the size, risk, or ambiguity of the 
 ## Background / Context
 ## Goals
 ## Non-Goals
+## External Surface
+## Errors Designed Out
 ## Constraints
 ## Dependencies
 ## Risks / Unknowns
 ## Open Questions
 ```
+
+`External Surface` describes the contract the user, caller, or operator sees — not the mechanism. Use it when the iteration introduces or changes anything externally visible (API, CLI, file format, UI affordance). Writing this section forces the PRD to be framed from the outside.
+
+`Errors Designed Out` lists failure modes the design makes impossible (vs. failure modes the design merely handles). Example: instead of "handle missing config file", state "config is always present because the installer writes a default". Use it when error handling would otherwise complicate the design.
 
 ### 4.2 `plan.md`
 
@@ -185,6 +193,43 @@ Optional sections (add only when useful for the size, risk, or ambiguity of the 
 
 How will we implement this?
 
+## Design
+
+The design pass that must happen before slicing. Skipping this section is not allowed.
+
+### Modules
+
+For each module touched (new, modified, removed), one bullet:
+
+- **<name>** — new | modified | removed
+  - Interface: what callers see (signature shape, surface area)
+  - Hides: what this module owns that nothing else needs to know
+  - Depth: deep | balanced | shallow — and why that is acceptable
+
+### Considered Alternatives
+
+At least one alternative decomposition we rejected, and why.
+
+One option is not a design. Sketch two; keep the loser as a one-line note.
+
+### Red Flags Checked
+
+Note any of these the plan introduces, and the justification:
+
+- shallow module (interface roughly the size of its implementation)
+- pass-through method or class (forwards without adding value)
+- information leakage between modules
+- temporal decomposition (modules shaped like a sequence of steps, not by what they hide)
+- special-case logic that should be generalized
+- repeated logic across slices
+- new abstraction that breaks layer separation
+
+### Complexity Direction
+
+Net effect of this iteration on structural complexity: **adds** | **neutral** | **reduces**.
+
+If it adds, why is that the right trade now? Link any design-debt follow-ups.
+
 ## Affected Files / Areas
 
 What parts of the system are likely to change?
@@ -198,6 +243,8 @@ How will this be tested or checked?
 Source of truth: GitHub Issues.
 
 Before issue creation, briefly describe the intended vertical slices without duplicating full issue bodies. After issue creation, list issue links or numbers.
+
+Each slice should respect the modules and interfaces defined in [Design](#design). Slices that require widening an interface beyond what Design specifies must call that out explicitly.
 
 ## Risks / Unknowns
 
@@ -230,9 +277,23 @@ What concrete outcome should this issue produce?
 
 What changes are included?
 
+## Contract
+
+The design contract this issue must respect. Carries the Design section of `plan.md` into the implementation context so the agent doing the work cannot drift.
+
+- Module(s) touched: which entries from `plan.md` § Design are changed.
+- Interface: what callers see after this issue. Signature shape, surface area, or "no change".
+- Information hidden inside: what this module owns that nothing else should know.
+- Out of contract: what callers must NOT rely on, even if the implementation happens to expose it.
+- Widening allowed? no by default. If yes, link the plan revision that approved it.
+
+For trivial issues (doc-only, dependency bump, typo): `Contract: N/A — <reason>`.
+
 ## Acceptance Criteria
 
 - [ ] What must be true when this issue is done?
+
+Acceptance criteria describe observable outcomes, not implementation steps. If a criterion names a class, file, or internal function, rewrite it.
 
 ## Verification
 
@@ -332,9 +393,10 @@ Add detail when the iteration is large, risky, cross-cutting, or product-sensiti
 Ready when:
 
 - approach is clear
+- design pass is done: modules named, interfaces sketched, at least one alternative considered and rejected, red flags checked, complexity direction stated
 - affected areas are identified
 - verification is concrete
-- slices are small enough for one branch and one PR each
+- slices are small enough for one branch and one PR each, and respect the design
 - risks and unknowns are visible
 - issue breakdown can proceed without inventing context
 
@@ -347,7 +409,8 @@ GitHub Issues are the source of truth for issue content. Do not create a local `
 Ready when:
 
 - each issue is small enough to fit one branch and one PR
-- each issue has goal, scope, acceptance criteria, and verification
+- each issue has goal, scope, contract, acceptance criteria, and verification
+- each issue's contract names the module(s) touched and the interface after the change, traceable back to `plan.md` § Design
 - issues are ordered by dependency and risk
 
 ### 5.5 Phase-Specific Stop Conditions
