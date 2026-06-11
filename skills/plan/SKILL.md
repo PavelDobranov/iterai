@@ -45,7 +45,7 @@ Use the template below. Add optional sections only when the work is big, risky, 
 
 #### Template
 
-<!-- mirror of ITERAI.md §4.2 — keep in sync -->
+<!-- mirror of README.md §4.2 — keep in sync -->
 
 ```markdown
 # Plan: <Title>
@@ -121,6 +121,7 @@ When the user approves, change the `Status` line to `Approved <YYYY-MM-DD>`. Tha
 - The plan is ready when: the approach and design are clear, verification is concrete, each slice fits one branch and one PR, and issues can be created from it without inventing context.
 - Do not skip Design. For trivial work (docs, typos, dependency bumps), `Design: N/A — <reason>` is fine — but use it sparingly.
 - Acceptance criteria describe outcomes, not implementation steps.
+- Error behavior belongs to the slice that owns it; do not let error handling fall between slices.
 - Verify steps must be concrete and runnable.
 - Write for a human who reads this in six months. Each slice must carry enough context for an agent with no prior session.
 - If two approaches would meaningfully change scope, risk, or dependencies, call out the decision or ask before writing.
