@@ -320,3 +320,9 @@ Things to resolve through real use. When answered, fold the answer into the docu
 - Where should verification evidence live: PR body, issue comment, or both?
 - Who merges: human only, or AI with approval?
 - When does this manual workflow graduate to automation, and which part first?
+
+---
+
+## 9. Credits
+
+The [`grill-me`](./skills/grill-me/SKILL.md) skill is adapted from [Matt Pocock's grill-me skill](https://github.com/mattpocock/skills/blob/main/skills/productivity/grill-me/SKILL.md).
