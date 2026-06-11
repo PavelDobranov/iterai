@@ -30,7 +30,7 @@ For each slice, create one GitHub issue with `gh issue create`:
 
 #### Issue Template
 
-<!-- mirror of README.md §4.3 — keep in sync -->
+<!-- mirror of iterai README.md §4.3 — keep in sync -->
 
 ```markdown
 # Issue: <Title>

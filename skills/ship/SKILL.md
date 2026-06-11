@@ -25,7 +25,7 @@ Fill the template below from the issue, the branch's commits, and the verificati
 
 #### Template
 
-<!-- mirror of README.md §4.4 — keep in sync -->
+<!-- mirror of iterai README.md §4.4 — keep in sync -->
 
 ```markdown
 # PR: <Title>

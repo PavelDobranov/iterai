@@ -45,7 +45,7 @@ Use the template below. Add optional sections only when the work is big, risky, 
 
 #### Template
 
-<!-- mirror of README.md §4.2 — keep in sync -->
+<!-- mirror of iterai README.md §4.2 — keep in sync -->
 
 ```markdown
 # Plan: <Title>
